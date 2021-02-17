@@ -1,0 +1,40 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var table = ee.FeatureCollection("users/thiagoquinaia/PROJETOS/PASTO_DEGRADADO/LIMITE_APA_R2"),
+    table2 = ee.FeatureCollection("users/thiagoquinaia/AT_BRUMADINHO"),
+    table3 = ee.FeatureCollection("users/thiagoquinaia/RIO_PARAOPEBA_jusante_R5"),
+    table4 = ee.FeatureCollection("users/thiagoquinaia/rio_mina_ferro_carvao"),
+    roi = /* color: #98ff00 */ee.Geometry.Point([-44.13226556162348, -20.139709672197665]);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+// Imagem apos ao rompimento 01/fev/2019
+//Rompimento da barragem de Brumadinho 29/jan/2019
+
+var data_inicial = '2019-01-20'
+var data_final = '2019-01-31'
+var nuvem = 20
+
+// Carrega Imagens Sentinel-2 BOA.
+var collection = ee.ImageCollection('COPERNICUS/S2_SR')
+    .filterDate(data_inicial, data_final)
+    //filtro por região
+    .filterBounds(roi) 
+    // Filtro de Nuvens
+    .filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', nuvem));
+    //.filterMetadata('MGRS_TILE', 'equals', MGRS_TILE)
+
+print(collection, "S2")
+
+
+var rgbVis = {bands: ['B4','B3','B2'],
+    min: [200,350,450], max: [4100,4000,3600], 
+    gamma : [2.1]}
+
+
+collection.toBands()
+
+Map.addLayer(collection, rgbVis, "RGB")
+
+Map.addLayer(table2, rgbVis, "Barragem")
+
+Map.addLayer(table3, rgbVis, "Rio")
+
+Map.addLayer(table4, rgbVis, "Córrego Mina")

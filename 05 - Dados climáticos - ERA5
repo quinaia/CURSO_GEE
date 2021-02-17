@@ -1,0 +1,146 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var table = ee.FeatureCollection("users/thiagoquinaia/AREA_URBANA_UBERABA"),
+    table2 = ee.FeatureCollection("users/thiagoquinaia/PROJETOS/PASTO_DEGRADADO/LIMITE_APA_R2"),
+    urban = /* color: #d63000 */ee.FeatureCollection(
+        [ee.Feature(
+            ee.Geometry.Polygon(
+                [[[-47.93305159985024, -19.748383550005137],
+                  [-47.93492306405039, -19.747039182595188],
+                  [-47.93617833786936, -19.747847013391308],
+                  [-47.93691043248421, -19.748841370012414],
+                  [-47.93593410840279, -19.749578507453244],
+                  [-47.93496851315743, -19.750517595425347]]]),
+            {
+              "system:index": "0"
+            })]),
+    forest = /* color: #98ff00 */ee.FeatureCollection(
+        [ee.Feature(
+            ee.Geometry.Polygon(
+                [[[-47.96708183362253, -19.77550108343928],
+                  [-47.96633081509836, -19.77574338986055],
+                  [-47.96579437329538, -19.775945311596832],
+                  [-47.96510772778757, -19.776086656660002],
+                  [-47.96429233624704, -19.776551075270515],
+                  [-47.96287612988718, -19.77550108343928],
+                  [-47.96300487591989, -19.77521839214882],
+                  [-47.962961960575655, -19.774390507627746],
+                  [-47.96257572247751, -19.774006852367005],
+                  [-47.96403484418161, -19.77346165646034],
+                  [-47.966974545261934, -19.773320309068993]]]),
+            {
+              "system:index": "0"
+            })]),
+    table3 = ee.FeatureCollection("users/thiagoquinaia/SHAPES/limites_municipios_minasgerais"),
+    center = /* color: #d63000 */ee.Geometry.Point([-44.97693171022865, -18.67246040412422]);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+// colors.
+var COLOR = {
+  CITY: 'ff0000',
+  DESERT: '0000ff',
+  FOREST: '00ff00'
+};
+
+var visualization = {
+  bands: 'TempM',
+  min: 4,
+  max: 34,
+  palette: ['#1266ff', '#297fff', '#4799ff', '#5eadff', '#5ed2ff', '#78e6ff', 
+  '#8dffef', '#b1fff4', '#7de779', '#a6d96a', '#d9ef8b', '#ffffbf', '#fee08b', 
+  '#fdae61', '#f46d43', '#d73027', '#a50026']
+}
+
+
+// shapes
+//var areax = ee.Feature(urban.geometry(), {label: 'Área Urbana Uberaba'});
+//var areay = ee.Feature(forest.geometry(), {label: 'Limite APA'});
+
+// cidades - Feature Collection
+var city1 = ee.FeatureCollection(table3).filterMetadata('geocodigo', 'equals', "3143104");
+var city2 = ee.FeatureCollection(table3).filterMetadata('geocodigo', 'equals', "3170107");
+var city3 = ee.FeatureCollection(table3).filterMetadata('geocodigo', 'equals', "3106200");
+
+//Feature collection flatten
+var areaz = new ee.FeatureCollection([city1, city2, city3]).flatten();
+
+print(areaz)
+print(table3, 'municipios')
+
+//ERA5
+var era = ee.ImageCollection("ECMWF/ERA5/DAILY")
+          .filterDate('2020-03-01', '2020-06-30')
+          .select(['mean_2m_air_temperature','total_precipitation'])
+          //.filterBounds(roi);
+          
+print(era)
+
+
+// Convert temperature to Celsius.
+var tempera = era.map(function(image) {
+  return image.addBands(image.subtract(273.15).select([0], ["TempM"])).toFloat();
+});
+
+//
+var pluvi = era.map(function(image) {
+  return image.addBands(image.multiply(1000).select([1], ['Pluv']));
+});
+
+print(tempera)
+
+var tempTimeSeries = ui.Chart.image.seriesByRegion({
+  imageCollection: tempera,
+  regions: areaz,
+  reducer: ee.Reducer.mean(),
+  band: 'TempM',
+  scale: 30000,
+  xProperty: 'system:time_start',
+  seriesProperty: 'nome'
+});
+tempTimeSeries.setChartType('ScatterChart');
+tempTimeSeries.setOptions({
+  title: 'Temperature com ERA5',
+  vAxis: {
+    title: 'Temperature (Celsius)'
+  },
+  lineWidth: 1,
+  pointSize: 4,
+  series: {
+    0: {color: COLOR.CITY},
+    1: {color: COLOR.FOREST},
+    2: {color: COLOR.DESERT}
+  }
+});
+
+var pluviTimeSeries = ui.Chart.image.seriesByRegion({
+  imageCollection: pluvi,
+  regions: areaz,
+  reducer: ee.Reducer.mean(),
+  band: 'Pluv',
+  scale: 30000,
+  xProperty: 'system:time_start',
+  seriesProperty: 'nome'
+});
+pluviTimeSeries.setChartType('ScatterChart');
+pluviTimeSeries.setOptions({
+  title: 'Precipitação com ERA5',
+  vAxis: {
+    title: 'Lâmina (mm)'
+  },
+  lineWidth: 1,
+  pointSize: 4,
+  series: {
+    0: {color: COLOR.CITY},
+    1: {color: COLOR.FOREST},
+    2: {color: COLOR.DESERT}
+  }
+});
+
+print(tempTimeSeries);
+print(pluviTimeSeries);
+
+
+Map.addLayer(tempera, visualization, "Temperature", false)
+Map.addLayer(table, {color: COLOR.CITY}, "APA", false);
+Map.addLayer(table2, {color: COLOR.CITY}, "Uberaba", false);
+Map.addLayer(table3, {color: COLOR.CITY}, "Municipios Minas Gerais", false);
+Map.addLayer(areaz, {color: "black"}, "Municipios escolhidos Minas Gerais");
+Map.centerObject(center, 5);

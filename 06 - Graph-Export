@@ -1,0 +1,295 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var dataset = ee.ImageCollection("COPERNICUS/S2_SR"),
+    l8 = ee.ImageCollection("LANDSAT/LC08/C01/T1_SR"),
+    center = /* color: #d63000 */ee.Geometry.Point([-47.94107187107016, -19.750578821694585]),
+    pasture = /* color: #0b4a8b */ee.FeatureCollection(
+        [ee.Feature(
+            ee.Geometry.Polygon(
+                [[[-47.94643094166015, -19.59380542814967],
+                  [-47.953469058115225, -19.594614031640138],
+                  [-47.95158078296874, -19.599627282605503],
+                  [-47.94840504749511, -19.602538130849073],
+                  [-47.94703175647948, -19.606176617092615],
+                  [-47.94462849720214, -19.609249052493855],
+                  [-47.941452761728506, -19.608197962777332],
+                  [-47.9411094389746, -19.606095762736864],
+                  [-47.942997714121084, -19.605368071706106],
+                  [-47.94308354480956, -19.6041552460061],
+                  [-47.944199343759756, -19.60278069915888],
+                  [-47.94454266651366, -19.601972136703893],
+                  [-47.94437100513671, -19.601325283814123],
+                  [-47.943255206186514, -19.601729567175003],
+                  [-47.94239689930175, -19.60124442702006],
+                  [-47.94179608448241, -19.599546424958138],
+                  [-47.94265439136718, -19.598333555371948],
+                  [-47.94291188343261, -19.597039817737276],
+                  [-47.94316937549804, -19.595988648250913],
+                  [-47.94385602100585, -19.594937471898895],
+                  [-47.94540097339843, -19.59469489176577]]]),
+            {
+              "label": "pasture",
+              "system:index": "0"
+            })]),
+    urban = /* color: #d63000 */ee.FeatureCollection(
+        [ee.Feature(
+            ee.Geometry.Polygon(
+                [[[-47.93305159985024, -19.748383550005137],
+                  [-47.93492306405039, -19.747039182595188],
+                  [-47.93617833786936, -19.747847013391308],
+                  [-47.93691043248421, -19.748841370012414],
+                  [-47.93593410840279, -19.749578507453244],
+                  [-47.93496851315743, -19.750517595425347]]]),
+            {
+              "label": "urban",
+              "system:index": "0"
+            })]),
+    forest = /* color: #98ff00 */ee.FeatureCollection(
+        [ee.Feature(
+            ee.Geometry.Polygon(
+                [[[-47.96708183362253, -19.77550108343928],
+                  [-47.96633081509836, -19.77574338986055],
+                  [-47.96579437329538, -19.775945311596832],
+                  [-47.96510772778757, -19.776086656660002],
+                  [-47.96429233624704, -19.776551075270515],
+                  [-47.96287612988718, -19.77550108343928],
+                  [-47.96300487591989, -19.77521839214882],
+                  [-47.962961960575655, -19.774390507627746],
+                  [-47.96257572247751, -19.774006852367005],
+                  [-47.96403484418161, -19.77346165646034],
+                  [-47.966974545261934, -19.773320309068993]]]),
+            {
+              "label": "forest",
+              "system:index": "0"
+            })]),
+    agriculture = /* color: #ffc82d */ee.FeatureCollection(
+        [ee.Feature(
+            ee.Geometry.Polygon(
+                [[[-47.958354856336506, -19.69247081925681],
+                  [-47.959642316663654, -19.69352135707319],
+                  [-47.9565524118785, -19.696672929155365],
+                  [-47.95432081397811, -19.695379984013],
+                  [-47.953119184339435, -19.69521836513584],
+                  [-47.949600126111896, -19.695056746095474],
+                  [-47.94719686683455, -19.695056746095474],
+                  [-47.93972959693709, -19.697804247586948],
+                  [-47.935867215955646, -19.696753737879966],
+                  [-47.936382200086506, -19.694895126891932],
+                  [-47.94101705726424, -19.693036494322296],
+                  [-47.94256200965682, -19.69101621705304],
+                  [-47.94822683509627, -19.69206676441483],
+                  [-47.94942846473494, -19.69133946312937],
+                  [-47.94899931129256, -19.69012728697798],
+                  [-47.94548025306502, -19.687056399654654],
+                  [-47.94402113136092, -19.685601748262023],
+                  [-47.94419279273787, -19.684066268568674],
+                  [-47.94728269752303, -19.68059118122267],
+                  [-47.948398496473224, -19.680429547418257],
+                  [-47.950630094373615, -19.68099526502019],
+                  [-47.95191755470076, -19.6821266942304],
+                  [-47.952861692274006, -19.684066268568674],
+                  [-47.95423498328963, -19.686571517325284],
+                  [-47.96007147010604, -19.690854593770137]]]),
+            {
+              "label": "agriculture",
+              "system:index": "0"
+            })]),
+    table = ee.FeatureCollection("users/thiagoquinaia/SHAPES/limites_municipios_minasgerais"),
+    area = 
+    /* color: #0b4a8b */
+    /* shown: false */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.Polygon(
+        [[[-47.99188363864828, -19.586993513177962],
+          [-47.99188363864828, -19.810668924415314],
+          [-47.85592782810141, -19.810668924415314],
+          [-47.85592782810141, -19.586993513177962]]], null, false),
+    iftm = 
+    /* color: #98ff00 */
+    /* shown: false */
+    ee.Geometry.Polygon(
+        [[[-47.96388406873353, -19.666053859486343],
+          [-47.96259660840638, -19.663305813376326],
+          [-47.959935857063606, -19.662497555556914],
+          [-47.9526402485431, -19.66670045172576],
+          [-47.9486062061847, -19.659426138688833],
+          [-47.95615930677064, -19.652717313092584],
+          [-47.96156664014466, -19.64786738493999],
+          [-47.96560068250306, -19.64730155044051],
+          [-47.97109384656556, -19.650858191293732],
+          [-47.97487039685853, -19.654899732933018],
+          [-47.97100801587708, -19.66783198186954]]]),
+    acert = ee.FeatureCollection("users/thiagoquinaia/talhoes_acert_gee"),
+    premix = ee.FeatureCollection("users/thiagoquinaia/SHAPES/premix_piquetes"),
+    piftm = ee.FeatureCollection("users/thiagoquinaia/piquetes_iftm");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+var data_inicial = '2020-01-01'
+var data_final = '2020-12-31'
+var nuvem = 30
+var recorte = piftm //premix //acert //area//table.filterMetadata("geocodigo", "equals", "3170107");
+
+// Filtros Imagens Sentinel-2 BOA.
+var dataset = dataset
+    .filterDate(data_inicial, data_final)
+    //filtro por região
+    .filterBounds(recorte) 
+    // Filtro de Nuvens
+    .filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', nuvem));
+    //.filterMetadata('MGRS_TILE', 'equals', MGRS_TILE)
+
+
+print(dataset, "S2")
+
+// Filtros Imagens Sentinel-2 BOA.
+var l8 = l8
+    .filterDate(data_inicial, data_final)
+    //filtro por região
+    .filterBounds(recorte) 
+    // Filtro de Nuvens
+    .filter(ee.Filter.lte('CLOUD_COVER', nuvem));
+    //.filterMetadata('MGRS_TILE', 'equals', MGRS_TILE)
+
+
+//função para o ndvi do sentinel
+var ndvi = function (img){
+  var c = img.addBands(img.normalizedDifference(['B8', 'B4'])
+  .rename('ndvi'))
+return c
+}
+
+// função para o NDVI do landsat
+var ndvil8 = function (img){
+  var c = img.addBands(img.normalizedDifference(['B5', 'B4'])
+  .rename('ndvi'))
+return c
+}
+// aplicação da função sentinel 2
+var ts = dataset.map(ndvi);
+// aplicação da função landsat
+var tsl8 = l8.map(ndvil8);
+
+var clipS2 = ts.select('ndvi').mean().clip(recorte)
+
+var clipl8 = tsl8.select('ndvi').mean().clip(recorte)
+
+
+var area = piftm //premix //new ee.FeatureCollection([forest, pasture, agriculture, urban]).flatten();
+
+print(clipS2, 'clip sentinel');
+print(clipl8, 'clip landsat 8');
+print(ts, 'serie temporal com ndvi');
+
+// Cria um gráfico com a série temporal das regiões de interesse
+var seriesS2 = ui.Chart.image.doySeriesByRegion({
+  imageCollection: ts,
+  bandName: "ndvi",
+  regions: area, 
+  regionReducer: ee.Reducer.mean(),
+  scale: 10, 
+  seriesProperty: 'id_str' 
+});
+seriesS2.setChartType('ScatterChart');
+seriesS2.setOptions({
+  title: 'Time Series NDVI - Sentinel 2',
+  vAxis: {
+    title: 'NDVI mean value'
+  },
+  lineWidth: 2,
+  pointSize: 3,
+  series: {
+    0: {color: "green"},
+    1: {color: "blue"},
+    2: {color: "red"},
+    3: {color: "black"}
+  }
+});
+
+
+print(seriesS2)
+
+
+
+//
+// Cria um gráfico com a série temporal das regiões de interesse
+var seriesl8 = ui.Chart.image.seriesByRegion({
+  imageCollection: tsl8,
+  regions: area, 
+  reducer: ee.Reducer.mean(),
+  band: "ndvi",
+  scale: 10, 
+  xProperty: 'system:time_start',
+  seriesProperty: 'id_str' 
+});
+seriesl8.setChartType('ScatterChart');
+seriesl8.setOptions({
+  title: 'Time Series NDVI - Landsat 8',
+  vAxis: {
+    title: 'NDVI mean value'
+  },
+  lineWidth: 2,
+  pointSize: 3,
+  series: {
+    0: {color: "green"},
+    1: {color: "blue"},
+    2: {color: "red"},
+    3: {color: "black"}
+  }
+});
+
+
+print(seriesl8)
+
+// configurações de visualização
+var visualization = {
+  bands: ['ndvi'],
+  min: 0.34,
+  max: 0.47,
+  palette: [
+    "a50026","d73027","f46d43","fdae61","fee08b","ffffbf",
+    "d9ef8b","a6d96a","66bd63","1a9850","006837",]
+};
+
+//centraliza o mapa
+Map.centerObject(acert, 14);
+//Add a imagem sentinel 2
+Map.addLayer(clipS2, visualization, "NDVI Sentinel 2");
+//Add a imagem Landsat 8
+Map.addLayer(clipl8, visualization, "NDVI Landsat 8", false);
+
+// Empilhamento de séries temporais para exportação
+var imageExportS2 = ts.select("ndvi").toBands()
+.clip(recorte)
+.toFloat()
+
+var imageExportl8 = tsl8.select("ndvi").toBands()
+.clip(recorte)
+.toFloat()
+
+print(imageExportS2)
+
+// exporta imagem sentinel
+Export.image.toDrive({
+  image: imageExportS2, 
+  description: "Sentinel", 
+  folder: "GEE_CURSO-raster", 
+  region: recorte,
+  scale: 10, 
+  //crs,
+  //crsTransform, 
+  }
+);
+
+//exporta imagem landsat
+Export.image.toDrive({
+  image: imageExportl8, 
+  description: "Landsat", 
+  folder: "GEE_CURSO-raster", 
+  region: recorte,
+  scale: 30, 
+  //crs,
+  //crsTransform, 
+  }
+);

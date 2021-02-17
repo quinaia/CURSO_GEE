@@ -1,0 +1,62 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var dataset = ee.ImageCollection("COPERNICUS/S2_SR"),
+    center = /* color: #98ff00 */ee.Geometry.Point([-47.932145479468595, -19.754779404005998]),
+    table = ee.FeatureCollection("users/thiagoquinaia/PROJETOS/PASTO_DEGRADADO/LIMITE_APA_R2"),
+    table2 = ee.FeatureCollection("users/thiagoquinaia/MUNICIPIOS_MG"),
+    area = 
+    /* color: #00ffff */
+    /* shown: false */
+    ee.Geometry.Polygon(
+        [[[-48.32964322416762, -19.462810238486732],
+          [-48.431190582148716, -19.93053578995136],
+          [-48.31865600365494, -20.111051255375372],
+          [-47.51446654386965, -20.0594978877404],
+          [-47.34702838845054, -19.511977308995565],
+          [-47.65992531451654, -19.294508938246427],
+          [-48.241813282636286, -19.294508426958366]]]);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+var data_inicial = '2020-10-01'
+var data_final = '2020-10-17'
+var nuvem = 20
+
+// Carrega Imagens Sentinel-2 BOA.
+var dataset = dataset
+    .filterDate(data_inicial, data_final)
+    //filtro por região
+    .filterBounds(area) 
+    // Filtro de Nuvens
+    .filter(ee.Filter.lte('CLOUDY_PIXEL_PERCENTAGE', nuvem));
+    //.filterMetadata('MGRS_TILE', 'equals', MGRS_TILE)
+
+print(dataset, "S2")
+
+var ndvi = function (img){
+  var c = img.addBands(img.normalizedDifference(['B8', 'B4'])
+  .rename('ndvi'))
+return c
+}
+
+// aplica a função
+var ts = dataset.map(ndvi)
+
+print(ts, 'ndvi pronto')
+
+var visualization = {
+  bands: ['ndvi'],
+  min: 0.02,
+  max: 0.66,
+  palette: [
+    "a50026","d73027","f46d43","fdae61","fee08b","ffffbf",
+    "d9ef8b","a6d96a","66bd63","1a9850","006837",]
+};
+
+var clipcollection = ts.select('ndvi').mean().clip(area)
+
+print(clipcollection, 'uai')
+
+Map.centerObject(center, 10);
+
+Map.addLayer(clipcollection, visualization, "NDVI");
+
+
+

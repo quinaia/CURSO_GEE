@@ -1,0 +1,76 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var roi = ee.FeatureCollection("users/thiagoquinaia/PROJETOS/PASTO_DEGRADADO/LIMITE_APA_R2"),
+    l8 = ee.ImageCollection("LANDSAT/LC08/C01/T1_SR"),
+    area = 
+    /* color: #bf04c2 */
+    /* displayProperties: [
+      {
+        "type": "rectangle"
+      }
+    ] */
+    ee.Geometry.Polygon(
+        [[[-48.70795063611845, -19.557838326824925],
+          [-48.70795063611845, -19.795768577408978],
+          [-48.38522724744657, -19.795768577408978],
+          [-48.38522724744657, -19.557838326824925]]], null, false),
+    pivo = 
+    /* color: #ff0000 */
+    /* shown: false */
+    ee.Geometry.Polygon(
+        [[[-47.97208247745255, -19.652117149370234],
+          [-47.97261891925553, -19.65280421324033],
+          [-47.972790580632484, -19.654380407471624],
+          [-47.972297054173744, -19.65547160979073],
+          [-47.97158895099381, -19.656199073879712],
+          [-47.97036586368302, -19.6566840481062],
+          [-47.969250064732826, -19.6566840481062],
+          [-47.96834884250382, -19.656340524847238],
+          [-47.96746907794694, -19.655491817171065],
+          [-47.967018466832435, -19.654542067542828],
+          [-47.96712575519303, -19.653329613038057],
+          [-47.96746907794694, -19.652379850609165],
+          [-47.9683273848317, -19.651531121979534],
+          [-47.970280032994545, -19.65122800352377],
+          [-47.97158895099381, -19.651712992778133]]]),
+    center = /* color: #00ff00 */ee.Geometry.Point([-47.93275944588512, -19.75080154470157]);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+var inicial_date = '2020-09-01'
+var final_date = '2020-10-19'
+
+//var path = ''
+//var row = ''
+
+var cloud = 50
+
+var l8 = l8    
+    .filterDate(inicial_date, final_date)
+    .filterBounds(pivo) 
+    //.filter(ee.Filter.eq('WRS_PATH', path))
+    //.filter(ee.Filter.eq('WRS_ROW', row))
+    .filterMetadata('CLOUD_COVER', 'less_than', cloud)
+    
+var ndvi = function(img){
+  var c = img.addBands(img.normalizedDifference(['B5','B4']))
+return c
+}
+
+
+var ts = l8.map(ndvi)
+
+var clipcollection = ts.select('nd').mean().clip(pivo)
+
+print(ts)
+
+var visualization = {
+  bands: ['nd'],
+  min: 0.02,
+  max: 0.7,
+  palette: ["a50026","d73027","f46d43","fdae61","fee08b","ffffbf",
+    "d9ef8b","a6d96a","66bd63","1a9850","006837",]
+}
+
+
+Map.centerObject(center, 10);
+
+Map.addLayer(clipcollection, visualization, 'l8')

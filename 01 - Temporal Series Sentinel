@@ -1,0 +1,14 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var geometry = /* color: #0b4a8b */ee.Geometry.Point([-47.936004452348435, -19.749455368838444]);
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+var collection = ee.ImageCollection("COPERNICUS/S2_SR").filterBounds(geometry)
+                    .first()
+
+var rgbVis = {bands: ['B4','B3','B2'],
+    min: [200,350,450], max: [4100,4000,3600], 
+    gamma : [1.35,1.55,1.15]}
+
+
+Map.addLayer(collection, rgbVis, "RGB")
+

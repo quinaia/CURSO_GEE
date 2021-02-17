@@ -1,0 +1,30 @@
+/**** Start of imports. If edited, may not auto-convert in the playground. ****/
+var l8 = ee.ImageCollection("LANDSAT/LC08/C01/T1_SR"),
+    roi = ee.FeatureCollection("users/thiagoquinaia/PROJETOS/PASTO_DEGRADADO/LIMITE_APA_R2");
+/***** End of imports. If edited, may not auto-convert in the playground. *****/
+
+var inicial_date = '2020-09-01'
+var final_date = '2020-10-19'
+
+//var path = ''
+//var row = ''
+
+var cloud = 50
+
+var l8 = l8    
+    .filterDate(inicial_date, final_date)
+    .filterBounds(roi) 
+    //.filter(ee.Filter.eq('WRS_PATH', path))
+    //.filter(ee.Filter.eq('WRS_ROW', row))
+    .filterMetadata('CLOUD_COVER', 'less_than', cloud)
+    
+
+var visualization = {
+  bands: ['B4','B3','B2'],
+  min: 47,
+  max: 1749,
+  gamma: 0.62
+}
+
+
+Map.addLayer(l8, visualization, 'l8 - landsat');

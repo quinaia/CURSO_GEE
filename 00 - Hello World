@@ -1,0 +1,17 @@
+print("hello world")
+
+//var list = [1, 2, 3, 4, 5, 6];
+//
+//var liststr = ['a', 'b', 'c', 'd', 'e', 'f'];
+//
+//var dict = {
+//  book: ['codigo da vinci', 'quem é você alaska?', 'Os Homens São de Marte, as Mulheres São de Vênus'],
+//  city: ['uberaba', 'monte carmelho', 'patos de minas'],
+//  meses: ['jan', 'fev', 'mar', 'abr', 'maio', 'jun', 'jul', 'ago'],
+//  list: list,
+//  liststri: liststr
+//}
+//
+//print(list[2], "Lista de números")
+//print(liststr[3], "Lista de Strings")
+//print(dict.book, "Dicionário")//
